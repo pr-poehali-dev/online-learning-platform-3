@@ -125,7 +125,17 @@ export default function AuthPage() {
                 Администратор:{" "}
                 <button
                   type="button"
-                  onClick={() => { setEmail("admin@learnhub.ru"); setPassword("admin1234"); }}
+                  onClick={async () => {
+                    setError("");
+                    setLoading(true);
+                    try {
+                      await login("admin@learnhub.ru", "admin1234");
+                    } catch (err: unknown) {
+                      setError((err as Error).message);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
                   className="text-primary hover:underline font-medium"
                 >
                   войти как admin

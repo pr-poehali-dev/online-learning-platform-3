@@ -63,6 +63,8 @@ def handler(event: dict, context) -> dict:
     raw_token = headers.get('X-Authorization') or headers.get('Authorization') or ''
     token = raw_token.replace('Bearer ', '').strip()
 
+    print(f"[AUTH] method={method} action={body.get('action')} email={body.get('email')} body_keys={list(body.keys())}")
+
     conn = get_conn()
     try:
         action = body.get('action', '')
