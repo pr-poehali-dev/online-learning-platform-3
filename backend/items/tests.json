@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "Get all items",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": "string",
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get courses only",
+      "method": "GET",
+      "path": "/?type=course",
+      "expectedStatus": 200,
+      "expectedBody": "string",
+      "bodyMatcher": "partial"
+    }
+  ]
+}
