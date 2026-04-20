@@ -33,11 +33,14 @@ def handler(event: dict, context) -> dict:
         return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': ''}
 
     method = event.get('httpMethod', 'GET')
-    token = (event.get('headers') or {}).get('X-Authorization', '').replace('Bearer ', '')
+    headers = event.get('headers') or {}
+    raw_token = headers.get('X-Authorization') or headers.get('Authorization') or ''
+    token = raw_token.replace('Bearer ', '').strip()
     body = {}
     if event.get('body'):
         try:
-            body = json.loads(event['body'])
+            parsed = json.loads(event['body'])
+            body = json.loads(parsed) if isinstance(parsed, str) else parsed
         except Exception:
             pass
 
