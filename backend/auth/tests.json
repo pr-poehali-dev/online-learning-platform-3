@@ -1,11 +1,11 @@
 {
   "tests": [
     {
-      "name": "Health check - unknown route",
+      "name": "GET without token returns 401",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 404,
-      "expectedBody": {"error": "string"},
+      "expectedStatus": 401,
+      "expectedBody": "string",
       "bodyMatcher": "partial"
     }
   ]

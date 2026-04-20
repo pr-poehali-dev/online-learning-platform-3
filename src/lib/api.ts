@@ -35,21 +35,21 @@ async function req(url: string, options: RequestInit = {}) {
 
 export const api = {
   register: (name: string, email: string, password: string) =>
-    req(`${URLS.auth}/register`, {
+    req(URLS.auth, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ action: "register", name, email, password }),
     }),
 
   login: (email: string, password: string) =>
-    req(`${URLS.auth}/login`, {
+    req(URLS.auth, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ action: "login", email, password }),
     }),
 
   me: () =>
-    req(`${URLS.auth}/me`, {
+    req(URLS.auth, {
       method: "GET",
       headers: authHeaders(),
     }),

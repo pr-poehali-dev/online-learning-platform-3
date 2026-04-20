@@ -10,7 +10,7 @@ SCHEMA = os.environ.get('MAIN_DB_SCHEMA', 't_p54794878_online_learning_plat')
 CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Authorization',
 }
 
 def get_conn():
@@ -45,25 +45,30 @@ def get_user_by_token(token: str, conn):
     return None
 
 def handler(event: dict, context) -> dict:
-    """Авторизация: регистрация, вход, выход, проверка сессии"""
+    """Авторизация: регистрация (action=register), вход (action=login), проверка сессии (GET)"""
     if event.get('httpMethod') == 'OPTIONS':
         return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': ''}
 
-    path = event.get('path', '/')
     method = event.get('httpMethod', 'GET')
     body = {}
     if event.get('body'):
         try:
             body = json.loads(event['body'])
+            if isinstance(body, str):
+                body = json.loads(body)
         except Exception:
             pass
 
-    token = (event.get('headers') or {}).get('X-Authorization', '').replace('Bearer ', '')
+    headers = event.get('headers') or {}
+    raw_token = headers.get('X-Authorization') or headers.get('Authorization') or ''
+    token = raw_token.replace('Bearer ', '').strip()
 
     conn = get_conn()
     try:
-        # POST /register
-        if method == 'POST' and '/register' in path:
+        action = body.get('action', '')
+
+        # POST action=register
+        if method == 'POST' and action == 'register':
             name = body.get('name', '').strip()
             email = body.get('email', '').strip().lower()
             password = body.get('password', '')
@@ -88,8 +93,8 @@ def handler(event: dict, context) -> dict:
                 'user': {'id': user_id, 'name': name, 'email': email, 'role': 'student'}
             })}
 
-        # POST /login
-        if method == 'POST' and '/login' in path:
+        # POST action=login
+        if method == 'POST' and action == 'login':
             email = body.get('email', '').strip().lower()
             password = body.get('password', '')
             pw_hash = hash_password(password)
@@ -108,8 +113,8 @@ def handler(event: dict, context) -> dict:
                 'user': {'id': user_id, 'name': name, 'email': email, 'role': role}
             })}
 
-        # GET /me
-        if method == 'GET' and '/me' in path:
+        # GET — проверка сессии (/me)
+        if method == 'GET':
             if not token:
                 return {'statusCode': 401, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Нет токена'})}
             user = get_user_by_token(token, conn)
@@ -117,6 +122,6 @@ def handler(event: dict, context) -> dict:
                 return {'statusCode': 401, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Сессия истекла'})}
             return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': json.dumps({'user': user})}
 
-        return {'statusCode': 404, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Not found'})}
+        return {'statusCode': 400, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Неверный запрос'})}
     finally:
         conn.close()
